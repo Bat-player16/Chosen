@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 0,borderTopLeftRadius:25,
     borderBottomLeftRadius:25,
-    backgroundColor: '#FFA500',
+    backgroundColor: Colors.main,
     marginRight: 15,
   },
   friendInfo: {

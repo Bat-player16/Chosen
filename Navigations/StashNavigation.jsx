@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import StashScreen from "../Screens/Friends/FriendsScreen"; 
+import StashScreen from "../Screens/Stash/StashScreen"; 
 const Stack = createStackNavigator();
 
 export default function ProfileNavigation() {
