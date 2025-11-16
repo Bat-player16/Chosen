@@ -30,7 +30,7 @@ export default function FriendsDetails() {
 
         {/* Quest Description */}
         <Text style={styles.description}>
-          You and Franny have completed 3 Quests together! You have accumulated 29 coins and the following special items:
+          You and Franny have completed 3 Quests together! You've also completed 2 campaigns and gained the following special items:
         </Text>
 
         {/* Special Items List */}
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderRadius: 999,
-    backgroundColor: '#FFA500',
+    backgroundColor: 'main',
     marginBottom: 15,
     borderWidth: 3,
     borderColor: '#000',
