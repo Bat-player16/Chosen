@@ -1,6 +1,6 @@
-import { View, Image, StyleSheet, Text, TouchableOpacity, Pressable, ActivityIndicator } from "react-native";
+import { View, Image, StyleSheet, Text, TouchableOpacity, Pressable, ActivityIndicator, Animated } from "react-native";
 import Colors from "../../Utils/Colors";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Asset } from "expo-asset";
 
 export default function MapScreen({ navigation, route }) {
@@ -8,6 +8,11 @@ export default function MapScreen({ navigation, route }) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmedQuest, setConfirmedQuest] = useState(null);
   const [isReady, setIsReady] = useState(false);
+  const [showWeaverPopup, setShowWeaverPopup] = useState(false);
+  const [showTradeConfirm, setShowTradeConfirm] = useState(false);
+  const [showTradeSuccess, setShowTradeSuccess] = useState(false);
+  
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Quest data - updated with new names
   const questData = {
@@ -65,6 +70,10 @@ export default function MapScreen({ navigation, route }) {
           require("../../assets/Images/A_Campaign.png"),
           require("../../assets/Images/C_Campaign.png"),
           require("../../assets/Images/Quest_Status.png"),
+          require("../../assets/Images/Weaver.png"),
+          require("../../assets/Images/Weaver_Hat.png"),
+          require("../../assets/Images/Yellow-Potion.png"),
+          require("../../assets/Images/Check.png"),
         ];
         
         const cacheImages = images.map((img) =>
@@ -112,6 +121,9 @@ export default function MapScreen({ navigation, route }) {
 
   const handleCampaignPress = (campaignId) => {
     console.log(`Campaign ${campaignId} pressed`);
+    if (campaignId === "D_Campaign") {
+      setShowWeaverPopup(true);
+    }
   };
 
   const handleQuestNavigate = (markerId) => {
@@ -123,6 +135,48 @@ export default function MapScreen({ navigation, route }) {
     });
   };
 
+  const handleWeaverCampaign = () => {
+    setShowWeaverPopup(false);
+    const quest = questData["D1"]; // Sewing Workshop
+    navigation.navigate("QuestConfig", {
+      questName: quest.name,
+      location: quest.location,
+      questType: quest.type,
+    });
+  };
+
+  const handleTradePotion = () => {
+    setShowTradeConfirm(true);
+  };
+
+  const handleCancelTrade = () => {
+    setShowTradeConfirm(false);
+  };
+
+  const handleConfirmTrade = () => {
+    setShowTradeConfirm(false);
+    setShowWeaverPopup(false);
+    setShowTradeSuccess(true);
+
+    // Fade in and out animation
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.delay(400),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowTradeSuccess(false);
+      fadeAnim.setValue(0);
+    });
+  };
+
   const dismissPopup = () => {
     setSelectedMarker(null);
   };
@@ -130,6 +184,11 @@ export default function MapScreen({ navigation, route }) {
   const dismissConfirmation = () => {
     setShowConfirmation(false);
     setConfirmedQuest(null);
+  };
+
+  const dismissWeaverPopup = () => {
+    setShowWeaverPopup(false);
+    setShowTradeConfirm(false);
   };
 
   const renderQuestPopup = (markerId, markerXPercent, markerYPercent) => {
@@ -452,6 +511,121 @@ export default function MapScreen({ navigation, route }) {
           </View>
         </Pressable>
       )}
+
+      {/* Weaver Popup */}
+      {showWeaverPopup && !showTradeConfirm && (
+        <Pressable style={styles.weaverOverlay} onPress={dismissWeaverPopup}>
+          <Pressable style={styles.weaverCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.weaverSubtitle}>Sewing Expert of the Desert Region</Text>
+            <Text style={styles.weaverTitle}>WEAVER</Text>
+
+            <View style={styles.weaverContent}>
+              <View style={styles.weaverImageBox}>
+                <Image
+                  source={require("../../assets/Images/Weaver.png")}
+                  style={styles.weaverImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.weaverHatBox}>
+                <Image
+                  source={require("../../assets/Images/Weaver_Hat.png")}
+                  style={styles.weaverHatImage}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+
+            <Text style={styles.weaverQuote}>
+              "You want a garment of mine, but you{'\n'}can barely take care of your own."
+            </Text>
+
+            <Text style={styles.bargainText}>Bargain?</Text>
+
+            <TouchableOpacity
+              style={styles.tradePotionButton}
+              onPress={handleTradePotion}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.tradePotionText}>Trade Potion</Text>
+              <Image
+                source={require("../../assets/Images/Yellow-Potion.png")}
+                style={styles.potionIcon}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.campaignButton}
+              onPress={handleWeaverCampaign}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.campaignButtonText}>Campaign for Trust</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      )}
+
+      {/* Trade Confirmation Popup */}
+      {showTradeConfirm && (
+        <Pressable style={styles.tradeConfirmOverlay}>
+          <Pressable style={styles.tradeConfirmCard} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.tradeConfirmTitle}>Trade with Weaver?</Text>
+
+            <View style={styles.tradeHatImageContainer}>
+              <Image
+                source={require("../../assets/Images/Weaver_Hat.png")}
+                style={styles.tradeHatImage}
+                resizeMode="contain"
+              />
+            </View>
+
+            <View style={styles.tradeDetails}>
+              <Text style={styles.tradeLabel}>You Gain:</Text>
+              <Text style={styles.tradeItemGain}>1x Weaver's Strawhat</Text>
+
+              <Text style={[styles.tradeLabel, { marginTop: 20 }]}>You Lose:</Text>
+              <Text style={styles.tradeItemLose}>1x Glowmelt Potion</Text>
+            </View>
+
+            <View style={styles.tradeButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCancelTrade}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.tradeButton}
+                onPress={handleConfirmTrade}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.tradeButtonText}>Trade</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      )}
+
+      {/* Trade Success Animation */}
+      {showTradeSuccess && (
+        <View style={styles.tradeSuccessOverlay}>
+          <Animated.View style={[styles.tradeSuccessContainer, { opacity: fadeAnim }]}>
+            <Image
+              source={require("../../assets/Images/Weaver_Hat.png")}
+              style={styles.successHatImage}
+              resizeMode="contain"
+            />
+            <Image
+              source={require("../../assets/Images/Check.png")}
+              style={styles.successCheckImage}
+              resizeMode="contain"
+            />
+          </Animated.View>
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -664,5 +838,244 @@ const styles = StyleSheet.create({
     fontFamily: "main",
     color: "#333",
     textAlign: "center",
+  },
+  // Weaver Popup Styles
+  weaverOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 200,
+  },
+  weaverCard: {
+    width: "85%",
+    backgroundColor: '#CBAD80',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  weaverSubtitle: {
+    fontFamily: "main",
+    fontSize: 14,
+    color: "#000",
+    textAlign: "center",
+  },
+  weaverTitle: {
+    fontFamily: "main",
+    fontSize: 36,
+    color: "#000",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  weaverContent: {
+    flexDirection: "row",
+    width: "100%",
+    marginBottom: 15,
+  },
+  weaverImageBox: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,.2)",
+    borderRadius: 10,
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  weaverImage: {
+    width: "90%",
+    height: "90%",
+  },
+  weaverHatBox: {
+    width: 80,
+    height: 80,
+    backgroundColor: "rgba(255,255,255,.2)",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  weaverHatImage: {
+    width: "80%",
+    height: "80%",
+  },
+  weaverQuote: {
+    fontFamily: "main",
+    fontSize: 16,
+    color: "#000",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  bargainText: {
+    fontFamily: "main",
+    fontSize: 24,
+    color: "#000",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  tradePotionButton: {
+    backgroundColor: "#5a8a5a",
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  tradePotionText: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#fff",
+    marginRight: 10,
+  },
+  potionIcon: {
+    width: 40,
+    height: 40,
+  },
+  campaignButton: {
+    backgroundColor: Colors.main,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    width: "100%",
+    borderWidth: 2,
+    borderColor: "#000",
+  },
+  campaignButtonText: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#000",
+    textAlign: "center",
+  },
+  // Trade Confirmation Styles
+  tradeConfirmOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 300,
+  },
+  tradeConfirmCard: {
+    width: "85%",
+    backgroundColor: '#e8dcc4',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  tradeConfirmTitle: {
+    fontFamily: "main",
+    fontSize: 28,
+    color: "#000",
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  tradeHatImageContainer: {
+    width: 150,
+    height: 150,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  tradeHatImage: {
+    width: "100%",
+    height: "100%",
+  },
+  tradeDetails: {
+    width: "100%",
+    marginBottom: 25,
+  },
+  tradeLabel: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#000",
+    marginBottom: 5,
+  },
+  tradeItemGain: {
+    fontFamily: "main",
+    fontSize: 16,
+    color: "#2d7a2d",
+    marginLeft: 10,
+  },
+  tradeItemLose: {
+    fontFamily: "main",
+    fontSize: 16,
+    color: "#c74444",
+    marginLeft: 10,
+  },
+  tradeButtons: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#b0b0b0",
+    borderRadius: 30,
+    paddingVertical: 15,
+    marginRight: 10,
+    borderWidth: 2,
+    borderColor: "#000",
+  },
+  cancelButtonText: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#000",
+    textAlign: "center",
+  },
+  tradeButton: {
+    flex: 1,
+    backgroundColor: "#5a8fd4",
+    borderRadius: 30,
+    paddingVertical: 15,
+    borderWidth: 2,
+    borderColor: "#000",
+  },
+  tradeButtonText: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#fff",
+    textAlign: "center",
+  },
+  // Trade Success Animation Styles
+  tradeSuccessOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 400,
+  },
+  tradeSuccessContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  successHatImage: {
+    width: 200,
+    height: 200,
+  },
+  successCheckImage: {
+    position: "absolute",
+    width: 100,
+    height: 100,
   },
 });

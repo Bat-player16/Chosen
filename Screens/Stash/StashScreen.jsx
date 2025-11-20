@@ -213,7 +213,7 @@ function CategoryButton({ icon, active, onPress }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.aquaticDark || '#3f6b47',
+    backgroundColor: Colors.aquaticDark || Colors.background,
     alignItems: 'center',
   },
 
