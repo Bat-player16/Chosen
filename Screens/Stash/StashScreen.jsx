@@ -22,7 +22,7 @@ export default function StashScreen() {
     { id: 'More', icon: require('../../assets/Images/More.png') },
   ];
 
-  // ---------- ITEMS (ALL 3 POTIONS + CLOTHES) ----------
+  // ITEMS DATA
   const items = {
     Stash: [
       {
@@ -54,8 +54,18 @@ export default function StashScreen() {
       { image: require('../../assets/Images/Fedora.png') },
     ],
 
-    Food: [],
-    More: [],
+    Food: [
+      { image: require('../../assets/Images/Pizza.png') },
+      { image: require('../../assets/Images/Bread.png') },
+      { image: require('../../assets/Images/Rice.png') },
+      { image: require('../../assets/Images/Jellyfish.png') },
+    ],
+    
+    More: [
+      { image: require('../../assets/Images/Potato.png') },
+      { image: require('../../assets/Images/Statue.png') },
+      { image: require('../../assets/Images/NFT.png') },
+    ],
   };
 
   const currentItems = items[activeCategory];
