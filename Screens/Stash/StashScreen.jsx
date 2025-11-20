@@ -1,10 +1,310 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+} from 'react-native';
+import Colors from '../../Utils/Colors';
+import React, { useState } from 'react';
 
 export default function StashScreen() {
+  const [activeCategory, setActiveCategory] = useState('Stash');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [itemModalVisible, setItemModalVisible] = useState(false);
+
+  const categories = [
+    { id: 'Stash', icon: require('../../assets/Images/Stash.png') },
+    { id: 'Clothes', icon: require('../../assets/Images/Clothes.png') },
+    { id: 'Food', icon: require('../../assets/Images/Food.png') },
+    { id: 'More', icon: require('../../assets/Images/More.png') },
+  ];
+
+  // ---------- ITEMS (ALL 3 POTIONS + CLOTHES) ----------
+  const items = {
+    Stash: [
+      {
+        image: require('../../assets/Images/Purple-Potion.png'),
+        name: 'Snugglebrew Potion',
+        description:
+          'You got this potion from Celestial island. This potion will grant you a calm, warm aura that brings comfort to those around you...',
+      },
+      {
+        image: require('../../assets/Images/Yellow-Potion.png'),
+        name: 'Glowmelt Potion',
+        description:
+          'Found deep within the Mountainous island caves. This potion glows gently and is said to melt away fear, giving you renewed courage...',
+      },
+      {
+        image: require('../../assets/Images/Pink-Potion.png'),
+        name: 'Lovelush Potion',
+        description:
+          'Discovered near the Aquatic island’s coral springs. A bubbly potion that sparks joy, creativity, and affectionate energy...',
+      },
+    ],
+
+    Clothes: [
+      { image: require('../../assets/Images/Shirt.png') },
+      { image: require('../../assets/Images/Pants.png') },
+      { image: require('../../assets/Images/Glasses.png') },
+      { image: require('../../assets/Images/Tie.png') },
+      { image: require('../../assets/Images/Hat.png') },
+      { image: require('../../assets/Images/Fedora.png') },
+    ],
+
+    Food: [],
+    More: [],
+  };
+
+  const currentItems = items[activeCategory];
+
+  const openItemModal = (item) => {
+    if (!item.name) return;
+    setSelectedItem(item);
+    setItemModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setItemModalVisible(false);
+    setSelectedItem(null);
+  };
+
   return (
-    <View>
-      <Text>StashScreen</Text>
+    <View style={styles.container}>
+
+      {/* Title */}
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Stash</Text>
+      </View>
+
+      {/* Top Category Bar */}
+      <View style={styles.categoryBar}>
+        {categories.map((cat) => (
+          <CategoryButton
+            key={cat.id}
+            icon={cat.icon}
+            active={activeCategory === cat.id}
+            onPress={() => setActiveCategory(cat.id)}
+          />
+        ))}
+      </View>
+
+      {/* Inventory Block */}
+      <View style={styles.inventoryWrapper}>
+        <View style={styles.inventoryGrid}>
+          {Array.from({ length: 9 }).map((_, index) => {
+            const item = currentItems[index];
+
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.gridCell}
+                onPress={() => item && openItemModal(item)}
+                activeOpacity={item ? 0.7 : 1}
+              >
+                {item && (
+                  <Image
+                    source={item.image}
+                    style={styles.itemImage}
+                    resizeMode="contain"
+                  />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* ITEM POPUP MODAL */}
+      <Modal animationType="fade" transparent={true} visible={itemModalVisible}>
+        <Pressable style={styles.modalOverlay} onPress={closeModal}>
+          <Pressable style={styles.modalCard}>
+
+            {/* Close Button */}
+            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+              <Text style={styles.closeText}>X</Text>
+            </TouchableOpacity>
+
+            {selectedItem && (
+              <>
+                <Text style={styles.modalTitle}>{selectedItem.name}</Text>
+
+                <Image
+                  source={selectedItem.image}
+                  style={styles.modalImage}
+                  resizeMode="contain"
+                />
+
+                <Text style={styles.modalDescription}>
+                  {selectedItem.description}
+                </Text>
+              </>
+            )}
+
+          </Pressable>
+        </Pressable>
+      </Modal>
+
     </View>
-  )
+  );
 }
+
+function CategoryButton({ icon, active, onPress }) {
+  return (
+    <TouchableOpacity
+      style={[styles.categoryButton, active && styles.activeCategory]}
+      onPress={onPress}
+    >
+      <Image source={icon} style={styles.categoryIcon} resizeMode="contain" />
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.aquaticDark || '#3f6b47',
+    alignItems: 'center',
+  },
+
+  titleContainer: {
+    marginTop: '12%',
+    marginBottom: 20,
+  },
+
+  title: {
+    fontSize: 48,
+    color: Colors.main,
+    fontFamily: 'main',
+  },
+
+  categoryBar: {
+    width: '90%',
+    backgroundColor: Colors.card || '#d8c894',
+    borderRadius: 12,
+    paddingVertical: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 15,
+  },
+
+  categoryButton: {
+    backgroundColor: '#d0d48f',
+    width: 80,
+    height: 80,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+
+  activeCategory: {
+    backgroundColor: '#ffffff',
+    borderColor: Colors.main,
+    borderWidth: 3,
+  },
+
+  categoryIcon: {
+    width: '70%',
+    height: '70%',
+  },
+
+  inventoryWrapper: {
+    width: '90%',
+    height: '60%',
+    backgroundColor: '#d8c894',
+    borderRadius: 12,
+    paddingVertical: 15,
+  },
+
+  inventoryGrid: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderWidth: 3,
+    borderColor: '#000',
+  },
+
+  gridCell: {
+    width: '33.33%',
+    height: '33.33%',
+    borderWidth: 2,
+    borderColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  itemImage: {
+    width: '70%',
+    height: '70%',
+  },
+
+  // MODAL
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  modalCard: {
+    width: '90%',
+    backgroundColor: '#f3e7c7',
+    borderRadius: 32,
+    paddingTop: 40,
+    paddingBottom: 35,
+    paddingHorizontal: 25,
+    alignItems: 'center',
+    position: 'relative',
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    backgroundColor: '#b7d29c',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+
+  closeText: {
+    fontSize: 20,
+    fontFamily: 'main',
+    marginTop: -1,
+  },
+
+  modalTitle: {
+    fontSize: 32,
+    fontFamily: 'main',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+
+  modalImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 25,
+  },
+
+  modalDescription: {
+    fontSize: 18,
+    fontFamily: 'main',
+    lineHeight: 26,
+    textAlign: 'center',
+    paddingHorizontal: 10,
+  },
+});

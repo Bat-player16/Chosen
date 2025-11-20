@@ -73,7 +73,7 @@ export default function MapScreen({ navigation, route }) {
   }, [route.params]);
 
   const handleQuestStatusPress = () => {
-    console.log("Quest Status pressed");
+    navigation.navigate("QuestStatus");
   };
 
   const handleMarkerPress = (markerId, xPosition) => {
