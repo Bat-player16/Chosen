@@ -24,7 +24,7 @@ export default function TabNavigation() {
           height: 85,
         },
         tabBarLabelStyle: {
-          fontSize: 14,
+          fontSize: 13,
           fontFamily: "main",
           marginBottom: 8,
         },
@@ -114,10 +114,10 @@ export default function TabNavigation() {
         options={{
           tabBarIcon: ({ focused }) => (
             <Image
-              source={require("../assets/Images/Avatar.png")}
+              source={require("../assets/Images/Avatar_Icon.png")}
               style={{
-                width: 30,
-                height: 30,
+                width: 25,
+                height: 25,
                 tintColor: focused ? "#000" : "#666",
               }}
               resizeMode="contain"

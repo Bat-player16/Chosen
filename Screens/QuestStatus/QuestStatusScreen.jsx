@@ -11,10 +11,10 @@ import Colors from "../../Utils/Colors";
 export default function QuestStatusScreen({ navigation }) {
 
   const TYPE_COLORS = {
-    desert: "#E6A04E",       // orange
-    mountainous: "#4BB0A8",  // teal
-    aquatic: "#6EC8FF",      // blue
-    celestial: "#D7A5FF",    // lavender
+    desert: Colors.desert,       // orange
+    mountainous: Colors.mountainous,  // teal
+    aquatic: Colors.aquatic,      // blue
+    celestial: Colors.celestial,    // lavender
   };
 
   const quests = [
