@@ -1,8 +1,8 @@
 import {
   View,
   Text,
-  StyleSheet,
   Image,
+  StyleSheet,
   TouchableOpacity,
   Modal,
   Pressable,
@@ -22,7 +22,6 @@ export default function StashScreen() {
     { id: 'More', icon: require('../../assets/Images/More.png') },
   ];
 
-  // ITEMS DATA
   const items = {
     Stash: [
       {
@@ -46,25 +45,25 @@ export default function StashScreen() {
     ],
 
     Clothes: [
-      { image: require('../../assets/Images/Shirt.png') },
-      { image: require('../../assets/Images/Pants.png') },
-      { image: require('../../assets/Images/Glasses.png') },
-      { image: require('../../assets/Images/Tie.png') },
-      { image: require('../../assets/Images/Hat.png') },
-      { image: require('../../assets/Images/Fedora.png') },
+      { image: require('../../assets/Images/Shirt.png'), name: 'Shirt' },
+      { image: require('../../assets/Images/Pants.png'), name: 'Pants' },
+      { image: require('../../assets/Images/Glasses.png'), name: 'Glasses' },
+      { image: require('../../assets/Images/Tie.png'), name: 'Tie' },
+      { image: require('../../assets/Images/Hat.png'), name: 'Hat' },
+      { image: require('../../assets/Images/Fedora.png'), name: 'Fedora' },
     ],
 
     Food: [
-      { image: require('../../assets/Images/Pizza.png') },
-      { image: require('../../assets/Images/Bread.png') },
-      { image: require('../../assets/Images/Rice.png') },
-      { image: require('../../assets/Images/Jellyfish.png') },
+      { image: require('../../assets/Images/Pizza.png'), name: 'Poppy Pizza' },
+      { image: require('../../assets/Images/Bread.png'), name: 'Bountiful Bread' },
+      { image: require('../../assets/Images/Rice.png'), name: 'Rich Rice' },
+      { image: require('../../assets/Images/Jellyfish.png'), name: 'Jellyfish Jingle' },
     ],
-    
+
     More: [
-      { image: require('../../assets/Images/Potato.png') },
-      { image: require('../../assets/Images/Statue.png') },
-      { image: require('../../assets/Images/NFT.png') },
+      { image: require('../../assets/Images/Potato.png'), name: 'Potato' },
+      { image: require('../../assets/Images/Statue.png'), name: 'Statue' },
+      { image: require('../../assets/Images/NFT.png'), name: 'NFT Artifact' },
     ],
   };
 
@@ -115,11 +114,14 @@ export default function StashScreen() {
                 activeOpacity={item ? 0.7 : 1}
               >
                 {item && (
-                  <Image
-                    source={item.image}
-                    style={styles.itemImage}
-                    resizeMode="contain"
-                  />
+                  <>
+                    <Image
+                      source={item.image}
+                      style={styles.itemImage}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.itemName}>{item.name}</Text>
+                  </>
                 )}
               </TouchableOpacity>
             );
@@ -156,7 +158,6 @@ export default function StashScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-
     </View>
   );
 }
@@ -248,11 +249,20 @@ const styles = StyleSheet.create({
   },
 
   itemImage: {
-    width: '70%',
-    height: '70%',
+    width: '80%',
+    height: '60%',
+    marginBottom: 4,
   },
 
-  // MODAL
+  itemName: {
+    fontFamily: 'main',
+    fontSize: 16,
+    color: '#000',
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 4,
+  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
@@ -294,7 +304,6 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: 20,
     fontFamily: 'main',
-    marginTop: -1,
   },
 
   modalTitle: {
