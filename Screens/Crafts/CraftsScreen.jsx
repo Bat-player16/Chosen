@@ -1,16 +1,39 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity, Pressable } from 'react-native'
+import { View, Text, Image, StyleSheet, TouchableOpacity, Pressable, Modal } from 'react-native'
 import React, { useState } from 'react'
 import Colors from '../../Utils/Colors'
 
 export default function CraftsScreen({ navigation }) {
   const [currentPage, setCurrentPage] = useState(0); // 0 = Supernova Serum, 1 = Flask of Fluid Frost
   const [selectedMarker, setSelectedMarker] = useState(null);
+  const [craftModalVisible, setCraftModalVisible] = useState(false);
 
   // Quest data
   const desertQuests = {
     D1: { name: "Sewing Workshop", location: "Wellesley, MA" },
     D2: { name: "Pottery Workshop", location: "Newton, MA" },
     D3: { name: "Woodworking", location: "Newton, MA" },
+  };
+
+  // Potion data
+  const potions = {
+    0: {
+      name: 'Supernova Serum',
+      image: require('../../assets/Images/Supernova_Serum.png'),
+      loseItems: [
+        '2x Solar Skates ⛸️',
+        '2x Stardust ✨',
+        '1x Desert Item'
+      ]
+    },
+    1: {
+      name: 'Flask of Fluid Frost',
+      image: require('../../assets/Images/Flask_of_Fluid_Frost.png'),
+      loseItems: [
+        '1x Slippery Bananas 🍌',
+        '1x Jellyfish Jingles 🪼',
+        '1x Polkadot Pebbles 🪨'
+      ]
+    }
   };
 
   const handleMarkerPress = (questId) => {
@@ -30,7 +53,27 @@ export default function CraftsScreen({ navigation }) {
   };
 
   const handleCauldronPress = () => {
-    console.log("Cauldron pressed - craft item!");
+    setCraftModalVisible(true);
+  };
+
+  const handleCraftCancel = () => {
+    setCraftModalVisible(false);
+  };
+
+  const handleCraftConfirm = () => {
+    setCraftModalVisible(false);
+    
+    const currentPotion = potions[currentPage];
+    
+    navigation.navigate('Stash', {
+      screen: 'StashScreen',
+      params: {
+        craftedItem: {
+          image: currentPotion.image,
+          name: currentPotion.name,
+        }
+      }
+    });
   };
 
   const togglePage = () => {
@@ -79,7 +122,7 @@ export default function CraftsScreen({ navigation }) {
         {/* Desert Items - Incomplete */}
         <View style={styles.ingredientLine}>
           <Image source={require('../../assets/Images/Checkbox.png')} style={styles.checkbox} resizeMode="contain" />
-          <Text style={styles.ingredientMainText}>1x <Text style={{ color: Colors.desert }}>Desert</Text> Item</Text>
+          <Text style={styles.ingredientMainText}> 1x <Text style={{ color: Colors.desert }}>Desert</Text> Item</Text>
         </View>
         <View style={styles.subItem}> 
           <Image source={require('../../assets/Images/Checkcircle.png')} style={styles.checkboxSmall} resizeMode="contain" />
@@ -154,14 +197,14 @@ export default function CraftsScreen({ navigation }) {
             <Image source={require('../../assets/Images/Checkcircle.png')} style={styles.checkboxSmall} resizeMode="contain" />
             <Image source={require('../../assets/Images/Red_Check.png')} style={styles.redCheckSmall} resizeMode="contain" />
           </View>
-          <Text style={styles.subItemText}>🍌 Slippery Banana</Text>
+          <Text style={styles.subItemText}>🍌 Slippery Bananas</Text>
         </View>
         <View style={styles.subItem}>
           <View style={styles.checkboxContainer}>
             <Image source={require('../../assets/Images/Checkcircle.png')} style={styles.checkboxSmall} resizeMode="contain" />
             <Image source={require('../../assets/Images/Red_Check.png')} style={styles.redCheckSmall} resizeMode="contain" />
           </View>
-          <Text style={styles.subItemText}>🪼 Jellyjam</Text>
+          <Text style={styles.subItemText}>🪼 Jellyfish Jingles</Text>
         </View>
 
         {/* Mountainous Items */}
@@ -177,7 +220,7 @@ export default function CraftsScreen({ navigation }) {
             <Image source={require('../../assets/Images/Checkcircle.png')} style={styles.checkboxSmall} resizeMode="contain" />
             <Image source={require('../../assets/Images/Red_Check.png')} style={styles.redCheckSmall} resizeMode="contain" />
           </View>
-          <Text style={styles.subItemText}>🪨 Folcado Pebbles</Text>
+          <Text style={styles.subItemText}>🪨 Polkadot Pebbles</Text>
         </View>
       </View>
 
@@ -214,6 +257,41 @@ export default function CraftsScreen({ navigation }) {
       <TouchableOpacity style={styles.tocButton}>
         <Text style={styles.tocButtonText}>Table of Contents</Text>
       </TouchableOpacity>
+
+      {/* CRAFT CONFIRMATION MODAL */}
+      <Modal animationType="fade" transparent={true} visible={craftModalVisible}>
+        <Pressable style={styles.craftModalOverlay} onPress={handleCraftCancel}>
+          <Pressable style={styles.craftModalCard}>
+            <Text style={styles.craftModalTitle}>{potions[currentPage].name}</Text>
+            
+            <Text style={styles.craftModalQuestion}>Would you like to craft this item?</Text>
+            
+            <View style={styles.craftModalSection}>
+              <Text style={styles.craftModalSectionTitle}>You Gain:</Text>
+              <Text style={styles.craftModalGainText}>
+                1x {potions[currentPage].name}
+              </Text>
+            </View>
+
+            <View style={styles.craftModalSection}>
+              <Text style={styles.craftModalSectionTitle}>You Lose:</Text>
+              {potions[currentPage].loseItems.map((item, index) => (
+                <Text key={index} style={styles.craftModalLoseText}>{item}</Text>
+              ))}
+            </View>
+
+            <View style={styles.craftModalButtons}>
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCraftCancel}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.craftButton} onPress={handleCraftConfirm}>
+                <Text style={styles.craftButtonText}>Craft</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -249,14 +327,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 40,
     paddingTop: 30,
     paddingBottom: 80,
-    pointerEvents: 'box-none', // Allow touches to pass through to children
+    pointerEvents: 'box-none',
   },
   pageTransitionArea: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 150, // Covers the bottom area of the book
+    height: 50,
     backgroundColor: 'transparent',
   },
 
@@ -354,7 +432,6 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 
-  // Quest Section
   // Quest Section
   questSection: {
     marginTop: 5,
@@ -458,5 +535,94 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'main',
     color: '#000',
+  },
+
+  // Craft Confirmation Modal
+  craftModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  craftModalCard: {
+    width: '85%',
+    maxWidth: 400,
+    backgroundColor: '#e8dcc4',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  craftModalTitle: {
+    fontSize: 24,
+    fontFamily: 'main',
+    color: '#000',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  craftModalQuestion: {
+    fontSize: 18,
+    fontFamily: 'main',
+    color: '#333',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  craftModalSection: {
+    width: '100%',
+    marginBottom: 15,
+  },
+  craftModalSectionTitle: {
+    fontSize: 18,
+    fontFamily: 'main',
+    color: '#000',
+    marginBottom: 8,
+  },
+  craftModalGainText: {
+    fontSize: 16,
+    fontFamily: 'main',
+    color: '#2a7d2e',
+    marginLeft: 15,
+  },
+  craftModalLoseText: {
+    fontSize: 16,
+    fontFamily: 'main',
+    color: '#c94444',
+    marginLeft: 15,
+    marginBottom: 4,
+  },
+  craftModalButtons: {
+    flexDirection: 'row',
+    marginTop: 20,
+    gap: 15,
+  },
+  cancelButton: {
+    backgroundColor: '#9ca3af',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontFamily: 'main',
+    color: '#000',
+  },
+  craftButton: {
+    backgroundColor: '#3b82f6',
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  craftButtonText: {
+    fontSize: 16,
+    fontFamily: 'main',
+    color: '#fff',
   },
 });

@@ -6,23 +6,20 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
+  Animated,
 } from 'react-native';
 import Colors from '../../Utils/Colors';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-export default function StashScreen() {
+export default function StashScreen({ route }) {
   const [activeCategory, setActiveCategory] = useState('Stash');
   const [selectedItem, setSelectedItem] = useState(null);
   const [itemModalVisible, setItemModalVisible] = useState(false);
+  const [showCraftConfirmation, setShowCraftConfirmation] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const categories = [
-    { id: 'Stash', icon: require('../../assets/Images/Stash.png') },
-    { id: 'Clothes', icon: require('../../assets/Images/Clothes.png') },
-    { id: 'Food', icon: require('../../assets/Images/Food.png') },
-    { id: 'More', icon: require('../../assets/Images/More.png') },
-  ];
-
-  const items = {
+  // Initial items - now as state so we can add to it
+  const [items, setItems] = useState({
     Stash: [
       {
         image: require('../../assets/Images/Purple-Potion.png'),
@@ -40,7 +37,7 @@ export default function StashScreen() {
         image: require('../../assets/Images/Pink-Potion.png'),
         name: 'Lovelush Potion',
         description:
-          'Discovered near the Aquatic island’s coral springs. A bubbly potion that sparks joy, creativity, and affectionate energy...',
+          'Discovered near the Aquatic island\'s coral springs. A bubbly potion that sparks joy, creativity, and affectionate energy...',
       },
     ],
 
@@ -65,7 +62,51 @@ export default function StashScreen() {
       { image: require('../../assets/Images/Statue.png'), name: 'Statue' },
       { image: require('../../assets/Images/NFT.png'), name: 'NFT Artifact' },
     ],
-  };
+  });
+
+  const categories = [
+    { id: 'Stash', icon: require('../../assets/Images/Stash.png') },
+    { id: 'Clothes', icon: require('../../assets/Images/Clothes.png') },
+    { id: 'Food', icon: require('../../assets/Images/Food.png') },
+    { id: 'More', icon: require('../../assets/Images/More.png') },
+  ];
+
+  // Handle crafted item from navigation
+  useEffect(() => {
+    if (route?.params?.craftedItem) {
+      const craftedItem = route.params.craftedItem;
+      
+      // Add the crafted item to the Stash category
+      setItems(prevItems => ({
+        ...prevItems,
+        Stash: [...prevItems.Stash, craftedItem]
+      }));
+
+      // Ensure we're on the Stash category
+      setActiveCategory('Stash');
+
+      // Show confirmation image
+      setShowCraftConfirmation(true);
+
+      // Fade in animation
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      // Fade out after 1.2 seconds, then hide
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowCraftConfirmation(false);
+        });
+      }, 1200);
+    }
+  }, [route?.params?.craftedItem]);
 
   const currentItems = items[activeCategory];
 
@@ -158,6 +199,17 @@ export default function StashScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* CRAFT CONFIRMATION POPUP */}
+      {showCraftConfirmation && (
+        <Animated.View style={[styles.craftConfirmationOverlay, { opacity: fadeAnim }]}>
+          <Image
+            source={require('../../assets/Images/Craft_Confirmation.png')}
+            style={styles.craftConfirmationImage}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -325,5 +377,22 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     textAlign: 'center',
     paddingHorizontal: 10,
+  },
+
+  // Craft Confirmation Popup
+  craftConfirmationOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  craftConfirmationImage: {
+    width: '80%',
+    height: '50%',
   },
 });
