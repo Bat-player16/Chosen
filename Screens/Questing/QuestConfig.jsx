@@ -94,7 +94,7 @@ export default function QuestConfig({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2d5a4a',
+    backgroundColor: Colors.background,
   },
   backButton: {
     position: 'absolute',

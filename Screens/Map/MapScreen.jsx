@@ -1,29 +1,25 @@
-import { View, Image, StyleSheet, Text, TouchableOpacity, Pressable, Dimensions, Modal } from "react-native";
+import { View, Image, StyleSheet, Text, TouchableOpacity, Pressable, ActivityIndicator } from "react-native";
 import Colors from "../../Utils/Colors";
 import { useState, useEffect } from "react";
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
+import { Asset } from "expo-asset";
 
 export default function MapScreen({ navigation, route }) {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmedQuest, setConfirmedQuest] = useState(null);
+  const [isReady, setIsReady] = useState(false);
 
   // Quest data - updated with new names
   const questData = {
-    // Desert Island Quests
     D1: { name: "Sewing Workshop", location: "Wellesley, MA", type: "desert" },
     D2: { name: "Pottery Workshop", location: "Newton, MA", type: "desert" },
     D3: { name: "Woodworking", location: "Newton, MA", type: "desert" },
-    // Mountainous Island Quests
     M1: { name: "Mountainous Quest 1", location: "Boston, MA", type: "mountainous" },
     M2: { name: "Mountainous Quest 2", location: "Boston, MA", type: "mountainous" },
     M3: { name: "Mountainous Quest 3", location: "Boston, MA", type: "mountainous" },
-    // Aquatic Island Quests
     A1: { name: "Aquatic Quest 1", location: "Boston, MA", type: "aquatic" },
     A2: { name: "Aquatic Quest 2", location: "Boston, MA", type: "aquatic" },
     A3: { name: "Aquatic Quest 3", location: "Boston, MA", type: "aquatic" },
-    // Celestial Island Quests
     C1: { name: "Celestial Quest 1", location: "Boston, MA", type: "celestial" },
     C2: { name: "Celestial Quest 2", location: "Boston, MA", type: "celestial" },
     C3: { name: "Celestial Quest 3", location: "Boston, MA", type: "celestial" },
@@ -49,6 +45,42 @@ export default function MapScreen({ navigation, route }) {
     },
   };
 
+  // -------------------------------
+  // 🔥 1. Preload ALL images before showing UI
+  // -------------------------------
+  useEffect(() => {
+    async function loadAssets() {
+      try {
+        const images = [
+          require("../../assets/Images/Desert.png"),
+          require("../../assets/Images/Mountainous.png"),
+          require("../../assets/Images/Aquatic.png"),
+          require("../../assets/Images/Celestial.png"),
+          require("../../assets/Images/D_Marker.png"),
+          require("../../assets/Images/M_Marker.png"),
+          require("../../assets/Images/A_Marker.png"),
+          require("../../assets/Images/C_Marker.png"),
+          require("../../assets/Images/D_Campaign.png"),
+          require("../../assets/Images/M_Campaign.png"),
+          require("../../assets/Images/A_Campaign.png"),
+          require("../../assets/Images/C_Campaign.png"),
+          require("../../assets/Images/Quest_Status.png"),
+        ];
+        
+        const cacheImages = images.map((img) =>
+          Asset.fromModule(img).downloadAsync()
+        );
+        
+        await Promise.all(cacheImages);
+        setIsReady(true);
+      } catch (error) {
+        console.error("Error loading assets:", error);
+        setIsReady(true); // Still show UI even if loading fails
+      }
+    }
+    loadAssets();
+  }, []);
+
   // Check if returning from QuestConfig with confirmation
   useEffect(() => {
     if (route.params?.showConfirmation) {
@@ -59,13 +91,11 @@ export default function MapScreen({ navigation, route }) {
       });
       setShowConfirmation(true);
 
-      // Auto-dismiss after 1.5 seconds
       const timer = setTimeout(() => {
         setShowConfirmation(false);
         setConfirmedQuest(null);
       }, 1500);
 
-      // Clear route params
       navigation.setParams({ showConfirmation: false });
 
       return () => clearTimeout(timer);
@@ -86,10 +116,10 @@ export default function MapScreen({ navigation, route }) {
 
   const handleQuestNavigate = (markerId) => {
     const quest = questData[markerId];
-    navigation.navigate('QuestConfig', { 
-      questName: quest.name, 
+    navigation.navigate("QuestConfig", {
+      questName: quest.name,
       location: quest.location,
-      questType: quest.type
+      questType: quest.type,
     });
   };
 
@@ -104,7 +134,7 @@ export default function MapScreen({ navigation, route }) {
 
   const renderQuestPopup = (markerId, markerXPercent, markerYPercent) => {
     if (selectedMarker?.id !== markerId) return null;
-    
+
     const quest = questData[markerId];
     const isRightSide = markerXPercent > 50;
 
@@ -114,9 +144,12 @@ export default function MapScreen({ navigation, route }) {
           styles.questPopup,
           isRightSide ? styles.popupLeft : styles.popupRight,
           {
-            top: markerYPercent + '%',
-            [isRightSide ? 'right' : 'left']: isRightSide ? (100 - markerXPercent ) + '%' : (markerXPercent + 8) + '%',
-          }
+            top: markerYPercent + "%",
+            [isRightSide ? "right" : "left"]:
+              isRightSide
+                ? 100 - markerXPercent + "%"
+                : markerXPercent + 8 + "%",
+          },
         ]}
         onPress={() => handleQuestNavigate(markerId)}
         activeOpacity={0.8}
@@ -127,6 +160,16 @@ export default function MapScreen({ navigation, route }) {
     );
   };
 
+  // Show loading screen while assets load
+  if (!isReady) {
+    return (
+      <View style={[styles.backgroundContainer, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={Colors.main} />
+        <Text style={styles.loadingText}>Loading World Map...</Text>
+      </View>
+    );
+  }
+
   return (
     <Pressable style={{ flex: 1 }} onPress={dismissPopup}>
       <View style={styles.backgroundContainer}>
@@ -134,7 +177,7 @@ export default function MapScreen({ navigation, route }) {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>World Map</Text>
         </View>
-        
+
         {/* Mountainous Island - Top Left */}
         <View style={styles.mountainousIsland}>
           <Image
@@ -143,7 +186,7 @@ export default function MapScreen({ navigation, route }) {
             resizeMode="contain"
           />
         </View>
-        
+
         {/* Desert Island - Top Right */}
         <View style={styles.desertIsland}>
           <Image
@@ -152,7 +195,7 @@ export default function MapScreen({ navigation, route }) {
             resizeMode="contain"
           />
         </View>
-        
+
         {/* Aquatic Island - Bottom Left */}
         <View style={styles.aquaticIsland}>
           <Image
@@ -161,7 +204,7 @@ export default function MapScreen({ navigation, route }) {
             resizeMode="contain"
           />
         </View>
-        
+
         {/* Celestial Island - Bottom Right */}
         <View style={styles.celestialIsland}>
           <Image
@@ -172,92 +215,204 @@ export default function MapScreen({ navigation, route }) {
         </View>
 
         {/* MOUNTAINOUS MARKERS */}
-        <TouchableOpacity style={[styles.marker, { top: '36%', left: '15%' }]} onPress={() => handleMarkerPress('M1', 15)}>
-          <Image source={require("../../assets/Images/M_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "36%", left: "15%" }]}
+          onPress={() => handleMarkerPress("M1", 15)}
+        >
+          <Image
+            source={require("../../assets/Images/M_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('M1', 15, 36)}
+        {renderQuestPopup("M1", 15, 36)}
 
-        <TouchableOpacity style={[styles.marker, { top: '42%', left: '40%' }]} onPress={() => handleMarkerPress('M2', 40)}>
-          <Image source={require("../../assets/Images/M_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "42%", left: "40%" }]}
+          onPress={() => handleMarkerPress("M2", 40)}
+        >
+          <Image
+            source={require("../../assets/Images/M_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('M2', 40, 42)}
+        {renderQuestPopup("M2", 40, 42)}
 
-        <TouchableOpacity style={[styles.marker, { top: '28%', left: '20%' }]} onPress={() => handleCampaignPress('M_Campaign')}>
-          <Image source={require("../../assets/Images/M_Campaign.png")} style={styles.campaignImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "28%", left: "20%" }]}
+          onPress={() => handleCampaignPress("M_Campaign")}
+        >
+          <Image
+            source={require("../../assets/Images/M_Campaign.png")}
+            style={styles.campaignImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.marker, { top: '47%', left: '22%' }]} onPress={() => handleMarkerPress('M3', 22)}>
-          <Image source={require("../../assets/Images/M_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "47%", left: "22%" }]}
+          onPress={() => handleMarkerPress("M3", 22)}
+        >
+          <Image
+            source={require("../../assets/Images/M_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('M3', 22, 47)}
+        {renderQuestPopup("M3", 22, 47)}
 
         {/* DESERT MARKERS */}
-        <TouchableOpacity style={[styles.marker, { top: '20%', left: '45%' }]} onPress={() => handleMarkerPress('D1', 45)}>
-          <Image source={require("../../assets/Images/D_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "20%", left: "45%" }]}
+          onPress={() => handleMarkerPress("D1", 45)}
+        >
+          <Image
+            source={require("../../assets/Images/D_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('D1', 45, 20)}
+        {renderQuestPopup("D1", 45, 20)}
 
-        <TouchableOpacity style={[styles.marker, { top: '32%', left: '70%' }]} onPress={() => handleMarkerPress('D2', 70)}>
-          <Image source={require("../../assets/Images/D_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "32%", left: "70%" }]}
+          onPress={() => handleMarkerPress("D2", 70)}
+        >
+          <Image
+            source={require("../../assets/Images/D_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('D2', 70, 32)}
+        {renderQuestPopup("D2", 70, 32)}
 
-        <TouchableOpacity style={[styles.marker, { top: '25%', left: '64%' }]} onPress={() => handleCampaignPress('D_Campaign')}>
-          <Image source={require("../../assets/Images/D_Campaign.png")} style={styles.campaignImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "25%", left: "64%" }]}
+          onPress={() => handleCampaignPress("D_Campaign")}
+        >
+          <Image
+            source={require("../../assets/Images/D_Campaign.png")}
+            style={styles.campaignImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.marker, { top: '38%', left: '82%' }]} onPress={() => handleMarkerPress('D3', 82)}>
-          <Image source={require("../../assets/Images/D_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "38%", left: "82%" }]}
+          onPress={() => handleMarkerPress("D3", 82)}
+        >
+          <Image
+            source={require("../../assets/Images/D_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('D3', 82, 38)}
+        {renderQuestPopup("D3", 82, 38)}
 
         {/* AQUATIC MARKERS */}
-        <TouchableOpacity style={[styles.marker, { top: '68%', left: '8%' }]} onPress={() => handleMarkerPress('A1', 8)}>
-          <Image source={require("../../assets/Images/A_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "68%", left: "8%" }]}
+          onPress={() => handleMarkerPress("A1", 8)}
+        >
+          <Image
+            source={require("../../assets/Images/A_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('A1', 8, 68)}
+        {renderQuestPopup("A1", 8, 68)}
 
-        <TouchableOpacity style={[styles.marker, { top: '72%', left: '39%' }]} onPress={() => handleMarkerPress('A2', 39)}>
-          <Image source={require("../../assets/Images/A_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "72%", left: "39%" }]}
+          onPress={() => handleMarkerPress("A2", 39)}
+        >
+          <Image
+            source={require("../../assets/Images/A_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('A2', 39, 72)}
+        {renderQuestPopup("A2", 39, 72)}
 
-        <TouchableOpacity style={[styles.marker, { top: '66%', left: '25%' }]} onPress={() => handleCampaignPress('A_Campaign')}>
-          <Image source={require("../../assets/Images/A_Campaign.png")} style={styles.campaignImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "66%", left: "25%" }]}
+          onPress={() => handleCampaignPress("A_Campaign")}
+        >
+          <Image
+            source={require("../../assets/Images/A_Campaign.png")}
+            style={styles.campaignImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.marker, { top: '88%', left: '33%' }]} onPress={() => handleMarkerPress('A3', 33)}>
-          <Image source={require("../../assets/Images/A_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "88%", left: "33%" }]}
+          onPress={() => handleMarkerPress("A3", 33)}
+        >
+          <Image
+            source={require("../../assets/Images/A_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('A3', 33, 88)}
+        {renderQuestPopup("A3", 33, 88)}
 
         {/* CELESTIAL MARKERS */}
-        <TouchableOpacity style={[styles.marker, { top: '48%', left: '62%' }]} onPress={() => handleMarkerPress('C1', 62)}>
-          <Image source={require("../../assets/Images/C_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "48%", left: "62%" }]}
+          onPress={() => handleMarkerPress("C1", 62)}
+        >
+          <Image
+            source={require("../../assets/Images/C_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('C1', 62, 48)}
+        {renderQuestPopup("C1", 62, 48)}
 
-        <TouchableOpacity style={[styles.marker, { top: '54%', left: '78%' }]} onPress={() => handleMarkerPress('C2', 78)}>
-          <Image source={require("../../assets/Images/C_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "54%", left: "78%" }]}
+          onPress={() => handleMarkerPress("C2", 78)}
+        >
+          <Image
+            source={require("../../assets/Images/C_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('C2', 78, 54)}
+        {renderQuestPopup("C2", 78, 54)}
 
-        <TouchableOpacity style={[styles.marker, { top: '60%', left: '52%' }]} onPress={() => handleCampaignPress('C_Campaign')}>
-          <Image source={require("../../assets/Images/C_Campaign.png")} style={styles.campaignImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "60%", left: "52%" }]}
+          onPress={() => handleCampaignPress("C_Campaign")}
+        >
+          <Image
+            source={require("../../assets/Images/C_Campaign.png")}
+            style={styles.campaignImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.marker, { top: '66%', left: '75%' }]} onPress={() => handleMarkerPress('C3', 75)}>
-          <Image source={require("../../assets/Images/C_Marker.png")} style={styles.markerImage} resizeMode="contain" />
+        <TouchableOpacity
+          style={[styles.marker, { top: "66%", left: "75%" }]}
+          onPress={() => handleMarkerPress("C3", 75)}
+        >
+          <Image
+            source={require("../../assets/Images/C_Marker.png")}
+            style={styles.markerImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        {renderQuestPopup('C3', 75, 66)}
+        {renderQuestPopup("C3", 75, 66)}
 
         {/* Quest Status Icon - Bottom Right Corner */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.questStatusButton}
           onPress={handleQuestStatusPress}
           activeOpacity={0.7}
         >
-          <View style={{backgroundColor: Colors.main, flex: 1}}>
+          <View style={{ backgroundColor: Colors.main, flex: 1 }}>
             <Image
               style={styles.questStatusIcon}
               source={require("../../assets/Images/Quest_Status.png")}
@@ -269,30 +424,29 @@ export default function MapScreen({ navigation, route }) {
 
       {/* Confirmation Modal */}
       {showConfirmation && confirmedQuest && (
-        <Pressable 
-          style={styles.confirmationOverlay}
-          onPress={dismissConfirmation}
-        >
-          <View 
+        <Pressable style={styles.confirmationOverlay} onPress={dismissConfirmation}>
+          <View
             style={[
               styles.confirmationCard,
-              { backgroundColor: islandConfig[confirmedQuest.type].backgroundColor }
+              { backgroundColor: islandConfig[confirmedQuest.type].backgroundColor },
             ]}
           >
             <Text style={styles.confirmationTitle}>Quest Initiated !</Text>
-            
+
             <View style={styles.confirmationContent}>
-              {/* Island Image */}
               <Image
                 source={islandConfig[confirmedQuest.type].image}
                 style={styles.confirmationIslandImage}
                 resizeMode="contain"
               />
-              
-              {/* Quest Info Box */}
+
               <View style={styles.confirmationQuestBox}>
-                <Text style={styles.confirmationQuestName}>{confirmedQuest.name}</Text>
-                <Text style={styles.confirmationQuestLocation}>{confirmedQuest.location}</Text>
+                <Text style={styles.confirmationQuestName}>
+                  {confirmedQuest.name}
+                </Text>
+                <Text style={styles.confirmationQuestLocation}>
+                  {confirmedQuest.location}
+                </Text>
               </View>
             </View>
           </View>
@@ -312,29 +466,40 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "#0d1f1eff",
   },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    color: Colors.main,
+    fontSize: 18,
+    fontFamily: "main",
+  },
   title: {
     color: Colors.main,
     zIndex: 3,
-    alignSelf: 'center',
+    alignSelf: "center",
     fontSize: 48,
-    fontFamily: 'main',
+    fontFamily: "main",
   },
   titleContainer: {
-    position: 'absolute',
-    top: '6%',
+    position: "absolute",
+    top: "6%",
     zIndex: 3,
-    alignSelf: 'center',
+    alignSelf: "center",
+    width: 3000,
   },
   islandImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   mountainousIsland: {
-    position: 'absolute',
-    top: '16%',
-    left: '5%',
-    width: '50%',
-    height: '50%',
+    position: "absolute",
+    top: "16%",
+    left: "5%",
+    width: "50%",
+    height: "50%",
     zIndex: 2,
     shadowColor: Colors.mountainous,
     shadowOffset: { width: 0, height: 4 },
@@ -343,13 +508,13 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   desertIsland: {
-    position: 'absolute',
-    top: '7%',
-    right: '9%',
-    width: '45%',
-    height: '45%',
+    position: "absolute",
+    top: "7%",
+    right: "9%",
+    width: "45%",
+    height: "45%",
     zIndex: 2,
-    transform: [{ rotate: '310deg' }],
+    transform: [{ rotate: "310deg" }],
     shadowColor: Colors.desert,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -357,13 +522,13 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   aquaticIsland: {
-    position: 'absolute',
-    top: '55%',
-    left: '7%',
-    width: '50%',
-    height: '50%',
+    position: "absolute",
+    top: "55%",
+    left: "7%",
+    width: "50%",
+    height: "50%",
     zIndex: 2,
-    transform: [{ rotate: '355deg' }],
+    transform: [{ rotate: "355deg" }],
     shadowColor: Colors.aquatic,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -371,13 +536,13 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   celestialIsland: {
-    position: 'absolute',
-    top: '38%',
-    left: '48%',
-    width: '50%',
-    height: '50%',
+    position: "absolute",
+    top: "38%",
+    left: "48%",
+    width: "50%",
+    height: "50%",
     zIndex: 2,
-    transform: [{ rotate: '15deg' }],
+    transform: [{ rotate: "15deg" }],
     shadowColor: Colors.celestial,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -385,84 +550,80 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   marker: {
-    position: 'absolute',
+    position: "absolute",
     width: 30,
     height: 30,
     zIndex: 5,
   },
   markerImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   campaignImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   questPopup: {
-    position: 'absolute',
+    position: "absolute",
     backgroundColor: Colors.main,
     borderRadius: 12,
     padding: 12,
     zIndex: 100,
     minWidth: 150,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
   },
-  popupLeft: {
-    // Appears to the left of marker
-  },
-  popupRight: {
-    // Appears to the right of marker
-  },
+  popupLeft: {},
+  popupRight: {},
   questName: {
-    fontFamily: 'main',
+    fontFamily: "main",
     fontSize: 16,
-    color: '#000',
+    color: "#000",
     marginBottom: 4,
   },
   questLocation: {
-    fontFamily: 'main',
+    fontFamily: "main",
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   questStatusButton: {
-    position: 'absolute',
-    bottom: '8%',
-    right: '8%',
+    position: "absolute",
+    bottom: "8%",
+    right: "8%",
     width: 60,
     height: 60,
     borderRadius: 30,
-    overflow: 'hidden',
+    overflow: "hidden",
     zIndex: 10,
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
   questStatusIcon: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   confirmationOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 5,
   },
   confirmationCard: {
-    width: '85%',
+    width: "85%",
     borderRadius: 20,
     padding: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -470,13 +631,13 @@ const styles = StyleSheet.create({
   },
   confirmationTitle: {
     fontSize: 32,
-    fontFamily: 'main',
-    color: '#000',
-    textAlign: 'center',
+    fontFamily: "main",
+    color: "#000",
+    textAlign: "center",
   },
   confirmationContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   confirmationIslandImage: {
     width: 150,
@@ -489,19 +650,19 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 5,
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: "#000",
   },
   confirmationQuestName: {
     fontSize: 20,
-    fontFamily: 'main',
-    color: '#000',
+    fontFamily: "main",
+    color: "#000",
     marginBottom: 2,
-    textAlign: 'center',
+    textAlign: "center",
   },
   confirmationQuestLocation: {
     fontSize: 16,
-    fontFamily: 'main',
-    color: '#333',
-    textAlign: 'center',
+    fontFamily: "main",
+    color: "#333",
+    textAlign: "center",
   },
 });

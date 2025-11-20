@@ -36,13 +36,13 @@ export default function FriendsDetails() {
         {/* Special Items List */}
         <View style={styles.itemsList}>
           <Text style={styles.item}>
-            • <Text style={{fontFamily: "main", color: "#9783a6"}}>Mystic Node Wing</Text> from the Celestial Forest
+            • <Text style={{fontFamily: "main", color: Colors.celestial}}>Mystic Node Wing</Text> from the Celestial Forest
           </Text>
           <Text style={styles.item}>
-            • <Text style={{fontFamily: "main", color: "#9cc4c4"}}>Grott's Beard</Text> from the Mountain Tops
+            • <Text style={{fontFamily: "main", color: Colors.mountainous}}>Grott's Beard</Text> from the Mountain Tops
           </Text>
           <Text style={styles.item}>
-            • A <Text style={{fontFamily: "main", color: "#D1FDA0"}}>Smooth River Rock</Text> from Aquatic Arena
+            • A <Text style={{fontFamily: "main", color: Colors.aquatic}}>Smooth River Rock</Text> from Aquatic Arena
           </Text>
         </View>
 
