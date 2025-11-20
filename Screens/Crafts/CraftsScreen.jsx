@@ -1,12 +1,10 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity, Pressable, ActivityIndicator } from 'react-native'
-import React, { useState, useEffect, useMemo } from 'react'
+import { View, Text, Image, StyleSheet, TouchableOpacity, Pressable } from 'react-native'
+import React, { useState } from 'react'
 import Colors from '../../Utils/Colors'
-import { Asset } from 'expo-asset';
 
 export default function CraftsScreen({ navigation }) {
   const [currentPage, setCurrentPage] = useState(0); // 0 = Supernova Serum, 1 = Flask of Fluid Frost
   const [selectedMarker, setSelectedMarker] = useState(null);
-  const [isReady, setIsReady] = useState(false);
 
   // Quest data
   const desertQuests = {
@@ -15,48 +13,19 @@ export default function CraftsScreen({ navigation }) {
     D3: { name: "Woodworking", location: "Newton, MA" },
   };
 
-  // -------------------------------
-  // 🔥 Preload ALL assets before showing UI
-  // -------------------------------
-  useEffect(() => {
-    async function loadAssets() {
-      try {
-        const images = [
-          require('../../assets/Images/Craft_Book.png'),
-          require('../../assets/Images/Supernova_Serum.png'),
-          require('../../assets/Images/Flask_of_Fluid_Frost.png'),
-          require('../../assets/Images/Checkbox.png'),
-          require('../../assets/Images/Red_Check.png'),
-          require('../../assets/Images/Checkcircle.png'),
-          require('../../assets/Images/Desert.png'),
-          require('../../assets/Images/D_Marker.png'),
-          require('../../assets/Images/Cauldron2.png'),
-        ];
-        
-        const cacheImages = images.map((img) =>
-          Asset.fromModule(img).downloadAsync()
-        );
-        
-        await Promise.all(cacheImages);
-        setIsReady(true);
-      } catch (error) {
-        console.error("Error loading assets:", error);
-        setIsReady(true); // Still show UI even if loading fails
-      }
-    }
-    loadAssets();
-  }, []);
-
   const handleMarkerPress = (questId) => {
     setSelectedMarker(questId);
   };
 
   const handleQuestNavigate = (questId) => {
     const quest = desertQuests[questId];
-    navigation.navigate('QuestConfig', {
-      questName: quest.name,
-      location: quest.location,
-      questType: 'desert'
+    navigation.navigate('Map', {
+      screen: 'QuestConfig',
+      params: {
+        questName: quest.name,
+        location: quest.location,
+        questType: 'desert'
+      }
     });
   };
 
@@ -69,18 +38,15 @@ export default function CraftsScreen({ navigation }) {
     setSelectedMarker(null);
   };
 
-  // -------------------------------
-  // 🔥 useMemo to cache page renders
-  // -------------------------------
-  
-  // Render Page 1: Supernova Serum (cached with useMemo)
-  const supernovaSerumPage = useMemo(() => (
+  // Render Page 1: Supernova Serum
+  const renderSupernovaSerum = () => (
     <>
       {/* Potion Title */}
       <View style={styles.potionHeader}>
         <View style={styles.potionTitleWrapper}>
           <Text style={[styles.potionTitle, styles.titleShadow]}>Supernova Serum</Text>
-          <Text style={[styles.potionTitle, styles.titleFront, {opacity: 0.5}]}>Supernova Serum</Text>
+          <Text style={[styles.potionTitle, styles.titleFront, 
+    {opacity: 0.5}]}>Supernova Serum</Text>
         </View>
         <Image source={require('../../assets/Images/Supernova_Serum.png')} style={styles.potionIcon} resizeMode="contain" />
       </View>
@@ -159,10 +125,10 @@ export default function CraftsScreen({ navigation }) {
         </View>
       </View>
     </>
-  ), [selectedMarker]); // Only re-render when selectedMarker changes
+  );
 
-  // Render Page 2: Flask of Fluid Frost (cached with useMemo)
-  const flaskOfFluidFrostPage = useMemo(() => (
+  // Render Page 2: Flask of Fluid Frost
+  const renderFlaskOfFluidFrost = () => (
     <>
       {/* Potion Title */}
       <View style={styles.potionHeader}>
@@ -223,17 +189,7 @@ export default function CraftsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </>
-  ), []); // No dependencies - this page never changes
-
-  // Show loading screen while assets load
-  if (!isReady) {
-    return (
-      <View style={[styles.screenContainer, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={Colors.main} />
-        <Text style={styles.loadingText}>Loading Potions...</Text>
-      </View>
-    );
-  }
+  );
 
   return (
     <View style={styles.screenContainer}>
@@ -247,7 +203,7 @@ export default function CraftsScreen({ navigation }) {
         
         {/* Content Area (NOT pressable) */}
         <View style={styles.contentArea}>
-          {currentPage === 0 ? supernovaSerumPage : flaskOfFluidFrostPage}
+          {currentPage === 0 ? renderSupernovaSerum() : renderFlaskOfFluidFrost()}
         </View>
 
         {/* Invisible Touchable Area at Bottom for Page Transition */}
@@ -269,15 +225,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     alignItems: 'center',
     paddingTop: 50,
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    color: Colors.main,
-    fontSize: 18,
-    fontFamily: 'main',
   },
   screenTitle: {
     fontSize: 40,
@@ -309,7 +256,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60, // Covers the bottom area of the book
+    height: 150, // Covers the bottom area of the book
     backgroundColor: 'transparent',
   },
 
@@ -407,6 +354,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 
+  // Quest Section
   // Quest Section
   questSection: {
     marginTop: 5,
