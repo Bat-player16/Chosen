@@ -1,12 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, } from 'react-native';
-import * as Font from "expo-font"; // Import Font module
+import { StyleSheet, View } from 'react-native';
+import * as Font from "expo-font";
 import TabNavigation from './Navigations/TabNavigation';
+import TutorialScreen from './Screens/Tutorial/TutorialScreen';
 import { NavigationContainer } from "@react-navigation/native";
 import Colors from './Utils/Colors';
-import { useRef, useEffect, useState } from 'react'; // Add this line
+import { useRef, useEffect, useState } from 'react';
+
 export default function App() {
-      const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [tutorialComplete, setTutorialComplete] = useState(false);
 
   useEffect(() => {
     async function loadFonts() {
@@ -31,17 +34,32 @@ export default function App() {
 
   const navigationRef = useRef();
 
+  const handleTutorialComplete = () => {
+    setTutorialComplete(true);
+  };
 
-  return (
-  <View style={{ flex: 1, backgroundColor: "black" }}>
+  if (!tutorialComplete) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "black" }}>
         <StatusBar
           hidden={false}
           backgroundColor={Colors.main}
         />
-        <NavigationContainer ref={navigationRef}>
-          <TabNavigation />
-        </NavigationContainer>
+        <TutorialScreen onComplete={handleTutorialComplete} />
       </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "black" }}>
+      <StatusBar
+        hidden={false}
+        backgroundColor={Colors.main}
+      />
+      <NavigationContainer ref={navigationRef}>
+        <TabNavigation />
+      </NavigationContainer>
+    </View>
   );
 }
 

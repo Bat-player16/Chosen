@@ -228,7 +228,7 @@ function CategoryButton({ icon, active, onPress }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.aquaticDark || Colors.background,
+    backgroundColor: Colors.background,
     alignItems: 'center',
   },
 
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
 
   activeCategory: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255, 255, 255, 0.35)',
     borderColor: Colors.main,
     borderWidth: 3,
   },
