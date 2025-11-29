@@ -3,7 +3,15 @@ import React, { useState } from 'react';
 import Colors from '../../Utils/Colors';
 
 export default function QuestConfig({ navigation, route }) {
-  const { questName = "Quest Name", location = "Location", questType = "desert" } = route.params || {};
+  const { 
+    questName = "Quest Name", 
+    location = "Location", 
+    questType = "desert",
+    isCampaign = false,
+    duration = 3,
+    frequency = 3
+  } = route.params || {};
+  
   const [selectedFriends, setSelectedFriends] = useState([]);
 
   const toggleFriend = (friendName) => {
@@ -15,13 +23,16 @@ export default function QuestConfig({ navigation, route }) {
   };
 
   const handleConfirm = () => {
-    console.log("Quest confirmed with friends:", selectedFriends);
+    console.log(isCampaign ? "Campaign confirmed with friends:" : "Quest confirmed with friends:", selectedFriends);
     // Navigate back and trigger confirmation view
     navigation.navigate('MapScreen', { 
       showConfirmation: true,
       questName,
       location,
-      questType
+      questType,
+      isCampaign,
+      duration,
+      frequency
     });
   };
 
@@ -81,11 +92,21 @@ export default function QuestConfig({ navigation, route }) {
           onPress={handleConfirm}
           activeOpacity={0.8}
         >
-          <Text style={styles.confirmButtonText}>Confirm Quest</Text>
+          <Text style={styles.confirmButtonText}>
+            {isCampaign ? "Confirm Campaign" : "Confirm Quest"}
+          </Text>
         </TouchableOpacity>
 
-        {/* Location Text */}
-        <Text style={styles.locationText}>{questName} ({location})</Text>
+        {/* Location Text and Campaign Details */}
+        <View style={styles.detailsContainer}>
+          <Text style={styles.locationText}>{questName} ({location})</Text>
+          {isCampaign && (
+            <>
+              <Text style={styles.campaignDetailText}>Duration: {duration} weeks</Text>
+              <Text style={styles.campaignDetailText}>Frequency: {frequency} time(s)/week</Text>
+            </>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -206,10 +227,19 @@ const styles = StyleSheet.create({
     fontFamily: 'main',
     color: '#000',
   },
+  detailsContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
   locationText: {
     fontSize: 16,
     fontFamily: 'main',
     color: Colors.main,
-    marginTop: 20,
+  },
+  campaignDetailText: {
+    fontSize: 14,
+    fontFamily: 'main',
+    color: Colors.main,
+    marginTop: 5,
   },
 });

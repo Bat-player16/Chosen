@@ -11,6 +11,10 @@ export default function MapScreen({ navigation, route }) {
   const [showWeaverPopup, setShowWeaverPopup] = useState(false);
   const [showTradeConfirm, setShowTradeConfirm] = useState(false);
   const [showTradeSuccess, setShowTradeSuccess] = useState(false);
+  const [showPrepareCampaign, setShowPrepareCampaign] = useState(false);
+  const [selectedQuest, setSelectedQuest] = useState(null);
+  const [campaignDuration, setCampaignDuration] = useState(3);
+  const [campaignFrequency, setCampaignFrequency] = useState(3);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -74,6 +78,10 @@ export default function MapScreen({ navigation, route }) {
           require("../../assets/Images/Weaver_Hat.png"),
           require("../../assets/Images/Yellow-Potion.png"),
           require("../../assets/Images/Check.png"),
+          require("../../assets/Images/Sewing_Icon.png"),
+          require("../../assets/Images/Knitting_Icon.png"),
+          require("../../assets/Images/Plus_Arrow.png"),
+          require("../../assets/Images/Minus_Arrow.png"),
         ];
         
         const cacheImages = images.map((img) =>
@@ -97,6 +105,9 @@ export default function MapScreen({ navigation, route }) {
         name: route.params.questName,
         location: route.params.location,
         type: route.params.questType,
+        isCampaign: route.params.isCampaign,
+        duration: route.params.duration,
+        frequency: route.params.frequency,
       });
       setShowConfirmation(true);
 
@@ -132,17 +143,14 @@ export default function MapScreen({ navigation, route }) {
       questName: quest.name,
       location: quest.location,
       questType: quest.type,
+      isCampaign: false,
     });
   };
 
   const handleWeaverCampaign = () => {
     setShowWeaverPopup(false);
-    const quest = questData["D1"]; // Sewing Workshop
-    navigation.navigate("QuestConfig", {
-      questName: quest.name,
-      location: quest.location,
-      questType: quest.type,
-    });
+    setShowPrepareCampaign(true);
+    setSelectedQuest(null);
   };
 
   const handleTradePotion = () => {
@@ -177,6 +185,35 @@ export default function MapScreen({ navigation, route }) {
     });
   };
 
+  const handleSelectQuest = (questName) => {
+    if (questName === "Sewing Workshop") {
+      setSelectedQuest(questName);
+    }
+  };
+
+  const handleChangeDuration = (delta) => {
+    setCampaignDuration(prev => Math.max(1, Math.min(5, prev + delta)));
+  };
+
+  const handleChangeFrequency = (delta) => {
+    setCampaignFrequency(prev => Math.max(1, Math.min(5, prev + delta)));
+  };
+
+  const handleConfirmCampaign = () => {
+    if (selectedQuest) {
+      setShowPrepareCampaign(false);
+      const quest = questData["D1"]; // Sewing Workshop
+      navigation.navigate("QuestConfig", {
+        questName: quest.name,
+        location: quest.location,
+        questType: quest.type,
+        isCampaign: true,
+        duration: campaignDuration,
+        frequency: campaignFrequency,
+      });
+    }
+  };
+
   const dismissPopup = () => {
     setSelectedMarker(null);
   };
@@ -189,6 +226,11 @@ export default function MapScreen({ navigation, route }) {
   const dismissWeaverPopup = () => {
     setShowWeaverPopup(false);
     setShowTradeConfirm(false);
+  };
+
+  const dismissPrepareCampaign = () => {
+    setShowPrepareCampaign(false);
+    setSelectedQuest(null);
   };
 
   const renderQuestPopup = (markerId, markerXPercent, markerYPercent) => {
@@ -487,14 +529,19 @@ export default function MapScreen({ navigation, route }) {
           <View
             style={[
               styles.confirmationCard,
-              { backgroundColor: islandConfig[confirmedQuest.type].backgroundColor },
+              { backgroundColor: confirmedQuest.isCampaign ? '#CBAD80' : islandConfig[confirmedQuest.type].backgroundColor },
             ]}
           >
-            <Text style={styles.confirmationTitle}>Quest Initiated !</Text>
+            <Text style={styles.confirmationTitle}>
+              {confirmedQuest.isCampaign ? "Campaign Initiated !" : "Quest Initiated !"}
+            </Text>
 
             <View style={styles.confirmationContent}>
               <Image
-                source={islandConfig[confirmedQuest.type].image}
+                source={confirmedQuest.isCampaign ? 
+                  require("../../assets/Images/Weaver.png") : 
+                  islandConfig[confirmedQuest.type].image
+                }
                 style={styles.confirmationIslandImage}
                 resizeMode="contain"
               />
@@ -506,6 +553,16 @@ export default function MapScreen({ navigation, route }) {
                 <Text style={styles.confirmationQuestLocation}>
                   {confirmedQuest.location}
                 </Text>
+                {confirmedQuest.isCampaign && (
+                  <>
+                    <Text style={styles.confirmationCampaignDetail}>
+                      Duration: {confirmedQuest.duration} weeks
+                    </Text>
+                    <Text style={styles.confirmationCampaignDetail}>
+                      Frequency: {confirmedQuest.frequency} time(s)/week
+                    </Text>
+                  </>
+                )}
               </View>
             </View>
           </View>
@@ -562,6 +619,142 @@ export default function MapScreen({ navigation, route }) {
             >
               <Text style={styles.campaignButtonText}>Campaign for Trust</Text>
             </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      )}
+
+      {/* Prepare Campaign Popup */}
+      {showPrepareCampaign && (
+        <Pressable style={styles.prepareCampaignOverlay} onPress={dismissPrepareCampaign}>
+          <Pressable style={styles.prepareCampaignCard} onPress={(e) => e.stopPropagation()}>
+            {/* Back Button */}
+            <TouchableOpacity 
+              style={styles.prepareBackButton}
+              onPress={dismissPrepareCampaign}
+            >
+              <Text style={styles.prepareBackButtonText}>←</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.prepareCampaignTitle}>Prepare Campaign</Text>
+
+            <View style={styles.prepareContentBox}>
+              <Text style={styles.prepareSubtitle}>Choose Quest to Repeat</Text>
+
+              {/* Quest Selection */}
+              <View style={styles.questSelectionRow}>
+                <TouchableOpacity
+                  style={styles.questOption}
+                  onPress={() => handleSelectQuest("Sewing Workshop")}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.questIconContainer}>
+                    <Image
+                      source={require("../../assets/Images/Sewing_Icon.png")}
+                      style={styles.questIcon}
+                      resizeMode="contain"
+                    />
+                    {selectedQuest === "Sewing Workshop" && (
+                      <View style={styles.checkOverlay}>
+                        <Image
+                          source={require("../../assets/Images/Check.png")}
+                          style={styles.checkIcon}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.questOptionName}>Sewing{'\n'}Workshop</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.questOption, styles.questOptionDisabled]}
+                  activeOpacity={1}
+                >
+                  <View style={styles.questIconContainer}>
+                    <Image
+                      source={require("../../assets/Images/Knitting_Icon.png")}
+                      style={styles.questIcon}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <Text style={styles.questOptionName}>Knitting{'\n'}Workshop</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Campaign Duration */}
+              <View style={styles.campaignControl}>
+                <Text style={styles.campaignControlLabel}>Campaign Duration</Text>
+                <View style={styles.campaignControlRow}>
+                  <Text style={styles.campaignControlValue}>{campaignDuration} weeks</Text>
+                  <View style={styles.campaignArrows}>
+                    <TouchableOpacity onPress={() => handleChangeDuration(1)}>
+                      <Image
+                        source={require("../../assets/Images/Plus_Arrow.png")}
+                        style={styles.arrowIcon}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleChangeDuration(-1)}>
+                      <Image
+                        source={require("../../assets/Images/Minus_Arrow.png")}
+                        style={styles.arrowIcon}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Campaign Frequency */}
+              <View style={styles.campaignControl}>
+                <Text style={styles.campaignControlLabel}>Campaign Frequency</Text>
+                <View style={styles.campaignControlRow}>
+                  <Text style={styles.campaignControlValue}>{campaignFrequency} time(s)/week</Text>
+                  <View style={styles.campaignArrows}>
+                    <TouchableOpacity onPress={() => handleChangeFrequency(1)}>
+                      <Image
+                        source={require("../../assets/Images/Plus_Arrow.png")}
+                        style={styles.arrowIcon}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleChangeFrequency(-1)}>
+                      <Image
+                        source={require("../../assets/Images/Minus_Arrow.png")}
+                        style={styles.arrowIcon}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Bottom Buttons */}
+            <View style={styles.prepareBottomButtons}>
+              <TouchableOpacity
+                style={styles.prepareCancelButton}
+                onPress={dismissPrepareCampaign}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.prepareCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.prepareConfirmButton,
+                  !selectedQuest && styles.prepareConfirmButtonDisabled
+                ]}
+                onPress={handleConfirmCampaign}
+                activeOpacity={selectedQuest ? 0.8 : 1}
+                disabled={!selectedQuest}
+              >
+                <Text style={[
+                  styles.prepareConfirmButtonText,
+                  !selectedQuest && styles.prepareConfirmButtonTextDisabled
+                ]}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
           </Pressable>
         </Pressable>
       )}
@@ -839,6 +1032,13 @@ const styles = StyleSheet.create({
     color: "#333",
     textAlign: "center",
   },
+  confirmationCampaignDetail: {
+    fontSize: 14,
+    fontFamily: "main",
+    color: "#000",
+    textAlign: "center",
+    marginTop: 4,
+  },
   // Weaver Popup Styles
   weaverOverlay: {
     position: "absolute",
@@ -883,12 +1083,13 @@ const styles = StyleSheet.create({
   },
   weaverImageBox: {
     flex: 1,
-    backgroundColor: "rgba(255,255,255,.2)",
+    backgroundColor: "rgba(39, 34, 18, 0.4)",
     borderRadius: 10,
     aspectRatio: 1,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
+    borderWidth: 1
   },
   weaverImage: {
     width: "90%",
@@ -897,10 +1098,11 @@ const styles = StyleSheet.create({
   weaverHatBox: {
     width: 80,
     height: 80,
-    backgroundColor: "rgba(255,255,255,.2)",
+    backgroundColor: "rgba(39, 34, 18, 0.4)",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1
   },
   weaverHatImage: {
     width: "80%",
@@ -955,6 +1157,180 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#000",
     textAlign: "center",
+  },
+  // Prepare Campaign Popup Styles
+  prepareCampaignOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 250,
+  },
+  prepareCampaignCard: {
+    width: "90%",
+    backgroundColor: Colors.background,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  prepareBackButton: {
+    position: "absolute",
+    top: 15,
+    left: 15,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.main,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  prepareBackButtonText: {
+    fontSize: 24,
+    color: "#000",
+    fontFamily: "main",
+  },
+  prepareCampaignTitle: {
+    fontFamily: "main",
+    fontSize: 32,
+    color: Colors.main,
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  prepareContentBox: {
+    backgroundColor: Colors.main,
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 15,
+  },
+  prepareSubtitle: {
+    fontFamily: "main",
+    fontSize: 20,
+    color: "#000",
+    textAlign: "center",
+  },
+  questSelectionRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+  },
+  questOption: {
+    alignItems: "center",
+    width: "40%",
+  },
+  questOptionDisabled: {
+    opacity: .5,
+  },
+  questIconContainer: {
+  width: 80,
+  height: 80,
+  // Remove: borderRadius: 40,
+  // Remove: backgroundColor: '#f5f0e6',
+  justifyContent: "center",
+  alignItems: "center",
+  position: "relative",marginVertical:5
+  // Remove: borderWidth: 2,
+  // Remove: borderColor: "#000",
+},
+  questIcon: {
+    width: "100%",
+    height: "100%",
+  },
+  checkOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(64, 164, 97, 0.6)",
+    borderRadius: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkIcon: {
+    width: "50%",
+    height: "50%",
+  },
+  questOptionName: {
+    fontFamily: "main",
+    fontSize: 14,
+    color: "#000",
+    textAlign: "center",
+  },
+  campaignControl: {
+    marginBottom: 15,
+  },
+  campaignControlLabel: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#000",
+    marginBottom: 8,
+  },
+  campaignControlRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  campaignControlValue: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#000",
+  },
+  campaignArrows: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  arrowIcon: {
+    width: 30,
+    height: 30,
+  },
+  prepareBottomButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  prepareCancelButton: {
+    flex: 1,
+    backgroundColor: "#8a8a8a",
+    borderRadius: 25,
+    paddingVertical: 12,
+    marginRight: 10,
+    borderWidth: 2,
+    borderColor: "#000",
+  },
+  prepareCancelButtonText: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#fff",
+    textAlign: "center",
+  },
+  prepareConfirmButton: {
+    flex: 1,
+    backgroundColor: Colors.main,
+    borderRadius: 25,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: "#000",
+  },
+  prepareConfirmButtonDisabled: {
+    backgroundColor: "#ccc",
+    opacity: 0.6,
+  },
+  prepareConfirmButtonText: {
+    fontFamily: "main",
+    fontSize: 18,
+    color: "#000",
+    textAlign: "center",
+  },
+  prepareConfirmButtonTextDisabled: {
+    color: "#666",
   },
   // Trade Confirmation Styles
   tradeConfirmOverlay: {

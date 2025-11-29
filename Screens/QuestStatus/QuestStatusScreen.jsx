@@ -76,14 +76,14 @@ export default function QuestStatusScreen({ navigation }) {
 
       case "In Progress":
         return (
-          <View style={[styles.wheelBase, { backgroundColor: "#d7cca5" }]}>
+          <View style={[styles.wheelBase, { backgroundColor: "#000000" }]}>
             <View
               style={[
                 styles.wheelProgressArc,
                 { borderColor: color, borderBottomColor: "transparent", borderLeftColor: "transparent" },
               ]}
             />
-            <View style={[styles.wheelCenter, { backgroundColor: "#d7cca5" }]} />
+            <View style={[styles.wheelCenter, { backgroundColor: "#000000" }]} />
           </View>
         );
 
@@ -166,7 +166,7 @@ export default function QuestStatusScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#2d5a4a",
+    backgroundColor: Colors.background,
     paddingTop: 40,
     alignItems: "center",
   },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#d7cca5",
+    backgroundColor: "#000000",
     borderWidth: 2,
     borderColor: "#000",
     justifyContent: "center",
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#d7cca5",
+    backgroundColor: "#000000",
   },
 
   // In Progress = arc
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#d7cca5",
+    backgroundColor: "#000000",
   },
   wheelProgressArc: {
     position: "absolute",
@@ -279,13 +279,13 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#d7cca5",
+    backgroundColor: "#000000",
   },
   wheelInviteCenter: {
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: "#d7cca5",
+    backgroundColor: "#000000",
   },
 
   // Default = dot

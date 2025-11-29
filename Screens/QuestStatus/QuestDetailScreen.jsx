@@ -116,8 +116,8 @@ export default function QuestDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#2d5a4a",
-    alignItems: "center",
+    backgroundColor: Colors.background,
+    alignItems: "center", 
   },
 
   scroll: {
