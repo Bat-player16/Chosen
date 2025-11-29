@@ -18,49 +18,48 @@ export default function StashScreen({ route }) {
   const [showCraftConfirmation, setShowCraftConfirmation] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Initial items - now as state so we can add to it
   const [items, setItems] = useState({
     Stash: [
       {
         image: require('../../assets/Images/Purple-Potion.png'),
         name: 'Snugglebrew Potion',
-        description:
-          'You got this potion from Celestial island. This potion will grant you a calm, warm aura that brings comfort to those around you...',
+        description: 'You got this potion from Celestial island...',
+        count: 1,
       },
       {
         image: require('../../assets/Images/Yellow-Potion.png'),
         name: 'Glowmelt Potion',
-        description:
-          'Found deep within the Mountainous island caves. This potion glows gently and is said to melt away fear, giving you renewed courage...',
+        description: 'Found deep within the Mountainous island caves...',
+        count: 1,
       },
       {
         image: require('../../assets/Images/Pink-Potion.png'),
         name: 'Lovelush Potion',
-        description:
-          'Discovered near the Aquatic island\'s coral springs. A bubbly potion that sparks joy, creativity, and affectionate energy...',
+        description: 'Discovered near the Aquatic island’s coral springs...',
+        count: 1,
       },
     ],
 
     Clothes: [
-      { image: require('../../assets/Images/Shirt.png'), name: 'Shirt' },
-      { image: require('../../assets/Images/Pants.png'), name: 'Pants' },
-      { image: require('../../assets/Images/Glasses.png'), name: 'Glasses' },
-      { image: require('../../assets/Images/Tie.png'), name: 'Tie' },
-      { image: require('../../assets/Images/Hat.png'), name: 'Hat' },
-      { image: require('../../assets/Images/Fedora.png'), name: 'Fedora' },
+      { image: require('../../assets/Images/Shirt.png'), name: 'Shirt', count: 1 },
+      { image: require('../../assets/Images/Pants.png'), name: 'Pants', count: 1 },
+      { image: require('../../assets/Images/Glasses.png'), name: 'Glasses', count: 1 },
+      { image: require('../../assets/Images/Tie.png'), name: 'Tie', count: 1 },
+      { image: require('../../assets/Images/Hat.png'), name: 'Hat', count: 1 },
+      { image: require('../../assets/Images/Fedora.png'), name: 'Fedora', count: 1 },
     ],
 
     Food: [
-      { image: require('../../assets/Images/Pizza.png'), name: 'Poppy Pizza' },
-      { image: require('../../assets/Images/Bread.png'), name: 'Bountiful Bread' },
-      { image: require('../../assets/Images/Rice.png'), name: 'Rich Rice' },
-      { image: require('../../assets/Images/Jellyfish.png'), name: 'Jellyfish Jingle' },
+      { image: require('../../assets/Images/Pizza.png'), name: 'Poppy Pizza', count: 1 },
+      { image: require('../../assets/Images/Bread.png'), name: 'Bountiful Bread', count: 1 },
+      { image: require('../../assets/Images/Rice.png'), name: 'Rich Rice', count: 1 },
+      { image: require('../../assets/Images/Jellyfish.png'), name: 'Jellyfish Jingle', count: 1 },
     ],
 
     More: [
-      { image: require('../../assets/Images/Potato.png'), name: 'Potato' },
-      { image: require('../../assets/Images/Statue.png'), name: 'Statue' },
-      { image: require('../../assets/Images/NFT.png'), name: 'NFT Artifact' },
+      { image: require('../../assets/Images/Potato.png'), name: 'Potato', count: 1 },
+      { image: require('../../assets/Images/Statue.png'), name: 'Statue', count: 1 },
+      { image: require('../../assets/Images/NFT.png'), name: 'NFT Artifact', count: 1 },
     ],
   });
 
@@ -71,39 +70,40 @@ export default function StashScreen({ route }) {
     { id: 'More', icon: require('../../assets/Images/More.png') },
   ];
 
-  // Handle crafted item from navigation
   useEffect(() => {
     if (route?.params?.craftedItem) {
       const craftedItem = route.params.craftedItem;
-      
-      // Add the crafted item to the Stash category
-      setItems(prevItems => ({
-        ...prevItems,
-        Stash: [...prevItems.Stash, craftedItem]
-      }));
 
-      // Ensure we're on the Stash category
+      setItems((prev) => {
+        const stash = [...prev.Stash];
+
+        const existingIndex = stash.findIndex((i) => i.name === craftedItem.name);
+
+        if (existingIndex !== -1) {
+          stash[existingIndex].count += 1;
+        } else {
+          stash.push({ ...craftedItem, count: 1 });
+        }
+
+        return { ...prev, Stash: stash };
+      });
+
       setActiveCategory('Stash');
 
-      // Show confirmation image
       setShowCraftConfirmation(true);
 
-      // Fade in animation
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 300,
+        duration: 250,
         useNativeDriver: true,
       }).start();
 
-      // Fade out after 1.2 seconds, then hide
       setTimeout(() => {
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 300,
+          duration: 250,
           useNativeDriver: true,
-        }).start(() => {
-          setShowCraftConfirmation(false);
-        });
+        }).start(() => setShowCraftConfirmation(false));
       }, 1200);
     }
   }, [route?.params?.craftedItem]);
@@ -111,25 +111,21 @@ export default function StashScreen({ route }) {
   const currentItems = items[activeCategory];
 
   const openItemModal = (item) => {
-    if (!item.name) return;
     setSelectedItem(item);
     setItemModalVisible(true);
   };
 
   const closeModal = () => {
-    setItemModalVisible(false);
     setSelectedItem(null);
+    setItemModalVisible(false);
   };
 
   return (
     <View style={styles.container}>
-
-      {/* Title */}
       <View style={styles.titleContainer}>
         <Text style={styles.title}>Stash</Text>
       </View>
 
-      {/* Top Category Bar */}
       <View style={styles.categoryBar}>
         {categories.map((cat) => (
           <CategoryButton
@@ -141,7 +137,6 @@ export default function StashScreen({ route }) {
         ))}
       </View>
 
-      {/* Inventory Block */}
       <View style={styles.inventoryWrapper}>
         <View style={styles.inventoryGrid}>
           {Array.from({ length: 9 }).map((_, index) => {
@@ -152,17 +147,18 @@ export default function StashScreen({ route }) {
                 key={index}
                 style={styles.gridCell}
                 onPress={() => item && openItemModal(item)}
-                activeOpacity={item ? 0.7 : 1}
               >
                 {item && (
-                  <>
-                    <Image
-                      source={item.image}
-                      style={styles.itemImage}
-                      resizeMode="contain"
-                    />
+                  <View style={styles.itemWrapper}>
+                    <Image source={item.image} style={styles.itemImage} resizeMode="contain" />
+
+                    {/* Counter ALWAYS shown */}
+                    <View style={styles.counterBadge}>
+                      <Text style={styles.counterText}>x{item.count}</Text>
+                    </View>
+
                     <Text style={styles.itemName}>{item.name}</Text>
-                  </>
+                  </View>
                 )}
               </TouchableOpacity>
             );
@@ -170,12 +166,10 @@ export default function StashScreen({ route }) {
         </View>
       </View>
 
-      {/* ITEM POPUP MODAL */}
       <Modal animationType="fade" transparent={true} visible={itemModalVisible}>
         <Pressable style={styles.modalOverlay} onPress={closeModal}>
           <Pressable style={styles.modalCard}>
 
-            {/* Close Button */}
             <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
               <Text style={styles.closeText}>X</Text>
             </TouchableOpacity>
@@ -183,16 +177,8 @@ export default function StashScreen({ route }) {
             {selectedItem && (
               <>
                 <Text style={styles.modalTitle}>{selectedItem.name}</Text>
-
-                <Image
-                  source={selectedItem.image}
-                  style={styles.modalImage}
-                  resizeMode="contain"
-                />
-
-                <Text style={styles.modalDescription}>
-                  {selectedItem.description}
-                </Text>
+                <Image source={selectedItem.image} style={styles.modalImage} resizeMode="contain" />
+                <Text style={styles.modalDescription}>{selectedItem.description}</Text>
               </>
             )}
 
@@ -200,7 +186,6 @@ export default function StashScreen({ route }) {
         </Pressable>
       </Modal>
 
-      {/* CRAFT CONFIRMATION POPUP */}
       {showCraftConfirmation && (
         <Animated.View style={[styles.craftConfirmationOverlay, { opacity: fadeAnim }]}>
           <Image
@@ -245,7 +230,7 @@ const styles = StyleSheet.create({
 
   categoryBar: {
     width: '90%',
-    backgroundColor: Colors.card || '#d8c894',
+    backgroundColor: Colors.card,
     borderRadius: 12,
     paddingVertical: 15,
     flexDirection: 'row',
@@ -278,7 +263,7 @@ const styles = StyleSheet.create({
   inventoryWrapper: {
     width: '90%',
     height: '60%',
-    backgroundColor: '#d8c894',
+    backgroundColor: Colors.card,
     borderRadius: 12,
     paddingVertical: 15,
   },
@@ -289,6 +274,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     borderWidth: 3,
     borderColor: '#000',
+    backgroundColor: '#d8c894', // full tan grid
   },
 
   gridCell: {
@@ -298,21 +284,45 @@ const styles = StyleSheet.create({
     borderColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#d8c894',
+  },
+
+  itemWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    position: 'relative',
   },
 
   itemImage: {
-    width: '80%',
-    height: '60%',
-    marginBottom: 4,
+    width: '85%',
+    height: '65%',
+    marginBottom: 6,
   },
 
   itemName: {
     fontFamily: 'main',
-    fontSize: 16,
+    fontSize: 15,
     color: '#000',
     textAlign: 'center',
     lineHeight: 18,
-    paddingHorizontal: 4,
+  },
+
+  counterBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 8,
+    backgroundColor: '#000',
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+
+  counterText: {
+    color: '#fff',
+    fontFamily: 'main',
+    fontSize: 13,
   },
 
   modalOverlay: {
@@ -331,12 +341,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     alignItems: 'center',
     position: 'relative',
-
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
   },
 
   closeButton: {
@@ -362,7 +366,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontFamily: 'main',
     marginBottom: 20,
-    textAlign: 'center',
   },
 
   modalImage: {
@@ -374,23 +377,21 @@ const styles = StyleSheet.create({
   modalDescription: {
     fontSize: 18,
     fontFamily: 'main',
-    lineHeight: 26,
     textAlign: 'center',
-    paddingHorizontal: 10,
+    lineHeight: 26,
   },
 
-  // Craft Confirmation Popup
   craftConfirmationOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
   },
+
   craftConfirmationImage: {
     width: '80%',
     height: '50%',
