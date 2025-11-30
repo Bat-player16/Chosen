@@ -10,7 +10,7 @@ Operation Instructions:
 
 # Implemented Tasks:
 ## Simple: Initiating a quest
-	To initiate a quest, a user will navigate the many quest options on the map and be able to form their party with one or more friends. 
+To initiate a quest, a user will navigate the many quest options on the map and be able to form their party with one or more friends. 
 		Limitations: Quest initiation is only functional for the desert region at the moment and does not have a story aspect
 
 ## Moderate: Crafting Potions
