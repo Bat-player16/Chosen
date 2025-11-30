@@ -5,7 +5,7 @@ This repo hold all the code for our HCI Final Project
 # Objective:
 Our app aims to help people who are estranged or away from their family, and facilitate forming strong connections with others so they might become a found family. This app gamifies the development of preexisting friendships through a variety of in-person “quests”. The game is centered around making potions, where a player gathers ingredients by completing quests in real life with other players such as learning a new skill, going to the gym, or planning their future. Potions or “campaigns” (series of repeated quests) reward the player with apparel to customize their character.
 
-Operation Instructions:
+# Operation Instructions:
 #### todo
 
 # Implemented Tasks:
