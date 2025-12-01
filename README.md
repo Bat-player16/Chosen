@@ -33,5 +33,5 @@ Once Trading Potion or Gaining Trust via Campaign successfully result in apparel
 
 ## TestFlight Link 
 [https://testflight.apple.com/join/CMjMEbj8
-](url)
+]
 
