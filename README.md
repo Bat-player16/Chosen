@@ -31,5 +31,7 @@ Once Trading Potion or Gaining Trust via Campaign successfully result in apparel
 	Limitations: Apparel is currently hard-coded into the player’s inventory, so trading in the potion does not actually reward you.
 
 
-
+## TestFlight Link 
+[https://testflight.apple.com/join/CMjMEbj8
+](url)
 
