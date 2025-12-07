@@ -8,6 +8,9 @@ Our app aims to help people who are estranged or away from their family, and fac
 # Operation Instructions:
 Please download the app from the testflight link below. The app will guide you through all the necessary steps.
 
+## TestFlight Link 
+[https://testflight.apple.com/join/CMjMEbj8]
+
 # Implemented Tasks:
 ## Simple: Initiating a quest
 To initiate a quest, a user will navigate the many quest options on the map and be able to form their party with one or more friends. 
@@ -29,8 +32,4 @@ Once Trading Potion or Gaining Trust via Campaign successfully result in apparel
 Successful bargaining of NPC’s trust through a campaign will reward the player with apparel which can be used to customize their avatar. Wanderers will need to commit to 1 quest for a repeated number of weeks/iterations to gain trust.
 		Limitations: Campaign task flow is currently hard-coded, so starting one will not result in apparel that will show up in inventory. 
 
-
-## TestFlight Link 
-[https://testflight.apple.com/join/CMjMEbj8
-]
 
